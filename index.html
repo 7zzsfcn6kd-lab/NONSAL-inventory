@@ -1,0 +1,81 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="theme-color" content="#0a7a3f" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+    <title>NONSAL Inventory MVP</title>
+    <link rel="manifest" href="./manifest.json" />
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <main class="app">
+      <header class="app__header">
+        <h1>NONSAL Inventory</h1>
+      </header>
+
+      <section id="captureScreen" class="screen">
+        <div class="card">
+          <p class="label">Active Room</p>
+          <div class="row">
+            <strong id="activeRoomText">Living Room</strong>
+            <button id="changeRoomBtn" class="btn btn--small" type="button">Change Room</button>
+          </div>
+
+          <div id="roomPanel" class="room-panel" hidden>
+            <label class="label" for="roomPresetSelect">Preset</label>
+            <select id="roomPresetSelect" class="input">
+              <option value="Living Room">Living Room</option>
+              <option value="Kitchen">Kitchen</option>
+              <option value="Bedroom">Bedroom</option>
+              <option value="Bathroom">Bathroom</option>
+              <option value="Garage">Garage</option>
+            </select>
+
+            <label class="label" for="customRoomInput">Custom Room (optional)</label>
+            <input id="customRoomInput" class="input" type="text" placeholder="e.g. Office" />
+            <button id="applyRoomBtn" class="btn" type="button">Use This Room</button>
+          </div>
+
+          <input id="photoInput" class="hidden-input" type="file" accept="image/*" capture="environment" />
+          <button id="takePhotoBtn" class="btn btn--primary btn--big" type="button">Take Photo</button>
+
+          <div id="photoPreviewWrap" class="photo-preview-wrap" hidden>
+            <img id="photoPreview" class="photo-preview" alt="Photo preview" />
+          </div>
+
+          <label class="label" for="descriptionInput">Description</label>
+          <textarea
+            id="descriptionInput"
+            class="input"
+            rows="3"
+            placeholder="Voice text appears here"
+          ></textarea>
+
+          <button id="dictateBtn" class="btn" type="button">Dictate Again</button>
+          <button id="saveBtn" class="btn btn--primary" type="button">Save</button>
+          <button id="retakeBtn" class="btn" type="button">Retake Photo</button>
+          <p id="status" class="status" aria-live="polite"></p>
+        </div>
+      </section>
+
+      <section id="listScreen" class="screen" hidden>
+        <div class="card">
+          <h2>Saved Entries</h2>
+          <ul id="entriesList" class="entries-list"></ul>
+          <button id="exportCsvBtn" class="btn" type="button">Export XLSX</button>
+          <button id="downloadPhotosBtn" class="btn" type="button">Download Photos</button>
+        </div>
+      </section>
+
+      <nav class="bottom-nav">
+        <button id="navCaptureBtn" class="btn btn--small" type="button">Capture</button>
+        <button id="navListBtn" class="btn btn--small" type="button">Entries</button>
+      </nav>
+    </main>
+
+    <script src="./app.js" defer></script>
+  </body>
+</html>
