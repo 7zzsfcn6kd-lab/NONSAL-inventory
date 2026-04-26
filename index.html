@@ -41,6 +41,13 @@
 
           <input id="photoInput" class="hidden-input" type="file" accept="image/*" capture="environment" />
           <button id="takePhotoBtn" class="btn btn--primary btn--big" type="button">Take Photo</button>
+          <div id="cameraWrap" class="camera-wrap" hidden>
+            <video id="cameraVideo" class="camera-video" playsinline autoplay muted></video>
+            <div class="camera-actions">
+              <button id="capturePhotoBtn" class="btn btn--primary" type="button">Capture</button>
+              <button id="cancelCameraBtn" class="btn" type="button">Cancel</button>
+            </div>
+          </div>
 
           <div id="photoPreviewWrap" class="photo-preview-wrap" hidden>
             <img id="photoPreview" class="photo-preview" alt="Photo preview" />
@@ -56,7 +63,6 @@
 
           <button id="dictateBtn" class="btn" type="button">Dictate Again</button>
           <button id="saveBtn" class="btn btn--primary" type="button">Save</button>
-          <button id="retakeBtn" class="btn" type="button">Retake Photo</button>
           <p id="status" class="status" aria-live="polite"></p>
         </div>
       </section>

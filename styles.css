@@ -105,6 +105,32 @@ body {
   overflow: hidden;
 }
 
+.camera-wrap {
+  margin-top: 10px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  overflow: hidden;
+  background: #000;
+}
+
+.camera-video {
+  display: block;
+  width: 100%;
+  max-height: 300px;
+  object-fit: cover;
+}
+
+.camera-actions {
+  display: flex;
+  gap: 8px;
+  padding: 8px;
+  background: #fff;
+}
+
+.camera-actions .btn {
+  margin-top: 0;
+}
+
 .photo-preview {
   display: block;
   width: 100%;

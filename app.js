@@ -18,12 +18,15 @@ const applyRoomBtn = document.getElementById("applyRoomBtn");
 
 const photoInput = document.getElementById("photoInput");
 const takePhotoBtn = document.getElementById("takePhotoBtn");
+const cameraWrap = document.getElementById("cameraWrap");
+const cameraVideo = document.getElementById("cameraVideo");
+const capturePhotoBtn = document.getElementById("capturePhotoBtn");
+const cancelCameraBtn = document.getElementById("cancelCameraBtn");
 const photoPreviewWrap = document.getElementById("photoPreviewWrap");
 const photoPreview = document.getElementById("photoPreview");
 const descriptionInput = document.getElementById("descriptionInput");
 const dictateBtn = document.getElementById("dictateBtn");
 const saveBtn = document.getElementById("saveBtn");
-const retakeBtn = document.getElementById("retakeBtn");
 const statusEl = document.getElementById("status");
 
 const entriesList = document.getElementById("entriesList");
@@ -35,6 +38,7 @@ let entries = [];
 let activeRoom = localStorage.getItem(ACTIVE_ROOM_KEY) || "Living Room";
 let currentPhotoBlob = null;
 let currentPhotoPreviewUrl = "";
+let cameraStream = null;
 const listPreviewUrls = new Set();
 
 init().catch(() => {
@@ -60,17 +64,19 @@ async function init() {
 
   applyRoomBtn.addEventListener("click", applyRoomChoice);
 
-  takePhotoBtn.addEventListener("click", () => photoInput.click());
+  takePhotoBtn.addEventListener("click", openCameraCapture);
   photoInput.addEventListener("change", onPhotoSelected);
+  capturePhotoBtn.addEventListener("click", captureFromLiveCamera);
+  cancelCameraBtn.addEventListener("click", closeCameraCapture);
 
   dictateBtn.addEventListener("click", startDictation);
   saveBtn.addEventListener("click", saveEntry);
-  retakeBtn.addEventListener("click", resetCaptureState);
 
   entriesList.addEventListener("click", onEntriesListClick);
 
   exportCsvBtn.addEventListener("click", exportXlsx);
   downloadPhotosBtn.addEventListener("click", downloadAllPhotos);
+  window.addEventListener("pagehide", stopActiveCamera);
 }
 
 function registerServiceWorker() {
@@ -181,6 +187,9 @@ function showScreen(screen) {
   const isCapture = screen === "capture";
   captureScreen.hidden = !isCapture;
   listScreen.hidden = isCapture;
+  if (!isCapture) {
+    stopActiveCamera();
+  }
 }
 
 function applyRoomChoice() {
@@ -201,21 +210,94 @@ function updateActiveRoomUI() {
   }
 }
 
+async function openCameraCapture() {
+  resetCaptureState();
+
+  if (!navigator.mediaDevices?.getUserMedia) {
+    photoInput.click();
+    return;
+  }
+
+  try {
+    const stream = await navigator.mediaDevices.getUserMedia({
+      video: { facingMode: { ideal: "environment" } },
+      audio: false,
+    });
+
+    cameraStream = stream;
+    cameraVideo.srcObject = stream;
+    cameraWrap.hidden = false;
+    setStatus("Camera ready.");
+  } catch {
+    // Fallback keeps capture working where stream APIs are blocked.
+    photoInput.click();
+  }
+}
+
+function closeCameraCapture() {
+  stopActiveCamera();
+  setStatus("Camera closed.");
+}
+
+function stopActiveCamera() {
+  if (cameraStream) {
+    cameraStream.getTracks().forEach((track) => track.stop());
+    cameraStream = null;
+  }
+  cameraVideo.srcObject = null;
+  cameraWrap.hidden = true;
+}
+
+async function captureFromLiveCamera() {
+  if (!cameraStream || !cameraVideo.videoWidth || !cameraVideo.videoHeight) {
+    setStatus("Camera not ready yet.");
+    return;
+  }
+
+  const canvas = document.createElement("canvas");
+  canvas.width = cameraVideo.videoWidth;
+  canvas.height = cameraVideo.videoHeight;
+  const ctx = canvas.getContext("2d");
+  if (!ctx) {
+    setStatus("Camera capture failed.");
+    return;
+  }
+
+  ctx.drawImage(cameraVideo, 0, 0, canvas.width, canvas.height);
+  const blob = await new Promise((resolve) =>
+    canvas.toBlob(resolve, "image/jpeg", 0.9)
+  );
+
+  if (!blob) {
+    setStatus("Camera capture failed.");
+    return;
+  }
+
+  setCapturedPhoto(blob);
+  stopActiveCamera();
+  setStatus("Photo captured. Starting voice input...");
+  startDictation();
+}
+
 function onPhotoSelected(event) {
   const file = event.target.files?.[0];
   if (!file) return;
 
-  currentPhotoBlob = file;
+  setCapturedPhoto(file);
+  setStatus("Photo captured. Starting voice input...");
+  startDictation();
+}
+
+function setCapturedPhoto(blob) {
+  currentPhotoBlob = blob;
 
   if (currentPhotoPreviewUrl) {
     URL.revokeObjectURL(currentPhotoPreviewUrl);
   }
-  currentPhotoPreviewUrl = URL.createObjectURL(file);
+  currentPhotoPreviewUrl = URL.createObjectURL(blob);
 
   photoPreview.src = currentPhotoPreviewUrl;
   photoPreviewWrap.hidden = false;
-  setStatus("Photo captured. Starting voice input...");
-  startDictation();
 }
 
 function startDictation() {
@@ -268,6 +350,7 @@ async function saveEntry() {
 }
 
 function resetCaptureState() {
+  stopActiveCamera();
   currentPhotoBlob = null;
   photoInput.value = "";
 
