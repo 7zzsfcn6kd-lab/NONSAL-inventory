@@ -3,6 +3,7 @@ const DB_VERSION = 1;
 const STORE_ENTRIES = "entries";
 const LEGACY_STORAGE_KEY = "nonsal_inventory_entries_v1";
 const ACTIVE_ROOM_KEY = "nonsal_inventory_active_room_v1";
+const POLICY_HOLDER_KEY = "nonsal_inventory_policy_holder_v1";
 
 const captureScreen = document.getElementById("captureScreen");
 const listScreen = document.getElementById("listScreen");
@@ -15,6 +16,8 @@ const roomPanel = document.getElementById("roomPanel");
 const roomPresetSelect = document.getElementById("roomPresetSelect");
 const customRoomInput = document.getElementById("customRoomInput");
 const applyRoomBtn = document.getElementById("applyRoomBtn");
+const policyHolderInput = document.getElementById("policyHolderInput");
+const policyHolderEditInput = document.getElementById("policyHolderEditInput");
 
 const photoInput = document.getElementById("photoInput");
 const takePhotoBtn = document.getElementById("takePhotoBtn");
@@ -32,10 +35,12 @@ const statusEl = document.getElementById("status");
 const entriesList = document.getElementById("entriesList");
 const exportCsvBtn = document.getElementById("exportCsvBtn");
 const downloadPhotosBtn = document.getElementById("downloadPhotosBtn");
+const clearInventoryBtn = document.getElementById("clearInventoryBtn");
 
 let dbPromise;
 let entries = [];
 let activeRoom = localStorage.getItem(ACTIVE_ROOM_KEY) || "Living Room";
+let policyHolderName = localStorage.getItem(POLICY_HOLDER_KEY) || "";
 let currentPhotoBlob = null;
 let currentPhotoPreviewUrl = "";
 let cameraStream = null;
@@ -50,7 +55,9 @@ async function init() {
   dbPromise = openDb();
 
   updateActiveRoomUI();
+  syncPolicyHolderInputs();
   resetCaptureState();
+  showScreen("capture");
 
   await migrateFromLegacyIfNeeded();
   await refreshEntries();
@@ -63,6 +70,8 @@ async function init() {
   });
 
   applyRoomBtn.addEventListener("click", applyRoomChoice);
+  policyHolderInput.addEventListener("input", onPolicyHolderChange);
+  policyHolderEditInput.addEventListener("input", onPolicyHolderChange);
 
   takePhotoBtn.addEventListener("click", openCameraCapture);
   photoInput.addEventListener("change", onPhotoSelected);
@@ -76,6 +85,7 @@ async function init() {
 
   exportCsvBtn.addEventListener("click", exportXlsx);
   downloadPhotosBtn.addEventListener("click", downloadAllPhotos);
+  clearInventoryBtn.addEventListener("click", clearInventoryWithConfirm);
   window.addEventListener("pagehide", stopActiveCamera);
 }
 
@@ -187,6 +197,8 @@ function showScreen(screen) {
   const isCapture = screen === "capture";
   captureScreen.hidden = !isCapture;
   listScreen.hidden = isCapture;
+  navCaptureBtn.classList.toggle("btn--active", isCapture);
+  navListBtn.classList.toggle("btn--active", !isCapture);
   if (!isCapture) {
     stopActiveCamera();
   }
@@ -201,6 +213,17 @@ function applyRoomChoice() {
   customRoomInput.value = "";
   roomPanel.hidden = true;
   setStatus("Room updated.");
+}
+
+function onPolicyHolderChange(event) {
+  policyHolderName = event.target.value;
+  localStorage.setItem(POLICY_HOLDER_KEY, policyHolderName);
+  syncPolicyHolderInputs();
+}
+
+function syncPolicyHolderInputs() {
+  policyHolderInput.value = policyHolderName;
+  policyHolderEditInput.value = policyHolderName;
 }
 
 function updateActiveRoomUI() {
@@ -275,8 +298,7 @@ async function captureFromLiveCamera() {
 
   setCapturedPhoto(blob);
   stopActiveCamera();
-  setStatus("Photo captured. Starting voice input...");
-  startDictation();
+  setStatus("Photo captured. Tap 2. Dictate.");
 }
 
 function onPhotoSelected(event) {
@@ -284,8 +306,7 @@ function onPhotoSelected(event) {
   if (!file) return;
 
   setCapturedPhoto(file);
-  setStatus("Photo captured. Starting voice input...");
-  startDictation();
+  setStatus("Photo captured. Tap 2. Dictate.");
 }
 
 function setCapturedPhoto(blob) {
@@ -321,7 +342,7 @@ function startDictation() {
   };
 
   recognition.onerror = () => {
-    setStatus("Voice input failed. Tap Dictate Again.");
+    setStatus("Voice input failed. Tap 2. Dictate.");
   };
 
   recognition.start();
@@ -335,6 +356,7 @@ async function saveEntry() {
 
   const entry = {
     id: crypto.randomUUID(),
+    policyHolder: policyHolderName.trim(),
     room: activeRoom,
     description: descriptionInput.value.trim(),
     photoBlob: currentPhotoBlob,
@@ -397,6 +419,10 @@ function renderEntries() {
     roomEl.className = "entry-room";
     roomEl.textContent = entry.room;
 
+    const policyHolderEl = document.createElement("div");
+    policyHolderEl.className = "entry-policy";
+    policyHolderEl.textContent = `Policy Holder: ${entry.policyHolder || policyHolderName || "(Not set)"}`;
+
     const descInput = document.createElement("textarea");
     descInput.className = "input entry-desc";
     descInput.rows = 2;
@@ -416,7 +442,7 @@ function renderEntries() {
     deleteBtn.textContent = "Delete";
 
     actions.append(saveEditBtn, deleteBtn);
-    body.append(roomEl, descInput, actions);
+    body.append(roomEl, policyHolderEl, descInput, actions);
     li.append(thumb, body);
     entriesList.appendChild(li);
   });
@@ -464,12 +490,40 @@ function buildExportRows() {
 
     return {
       itemNumber,
+      policyHolder: entry.policyHolder || policyHolderName || "",
       room: entry.room,
       description: entry.description || "",
       timestamp: entry.timestamp,
       photoFilename,
       photoBlob: entry.photoBlob,
     };
+  });
+}
+
+async function clearInventoryWithConfirm() {
+  const confirmation = window.prompt("Type CLEAR to remove all inventory entries.");
+  if (confirmation !== "CLEAR") {
+    setStatus("Clear inventory canceled.");
+    return;
+  }
+
+  await clearAllEntries();
+  policyHolderName = "";
+  localStorage.removeItem(POLICY_HOLDER_KEY);
+  syncPolicyHolderInputs();
+  await refreshEntries();
+  setStatus("Inventory cleared. Set a new policy holder.");
+}
+
+async function clearAllEntries() {
+  const db = await dbPromise;
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction(STORE_ENTRIES, "readwrite");
+    const store = tx.objectStore(STORE_ENTRIES);
+    const request = store.clear();
+
+    request.onsuccess = () => resolve();
+    request.onerror = () => reject(request.error);
   });
 }
 
@@ -545,13 +599,22 @@ async function buildXlsxBlob(rows) {
   const sheetRows = [
     [
       "Item Number",
+      "Policy Holder",
       "Thumbnail",
       "Room",
       "Description",
       "Timestamp",
       "Photo Filename",
     ],
-    ...rows.map((row) => [row.itemNumber, "", row.room, row.description, row.timestamp, row.photoFilename]),
+    ...rows.map((row) => [
+      row.itemNumber,
+      row.policyHolder,
+      "",
+      row.room,
+      row.description,
+      row.timestamp,
+      row.photoFilename,
+    ]),
   ];
 
   files.push({ path: "[Content_Types].xml", data: textEncoder.encode(contentTypesXml(rows.length)) });
@@ -641,11 +704,12 @@ function stylesXml() {
 function sheetXml(rows, imageCount) {
   const colWidths = [
     '<col min="1" max="1" width="12" customWidth="1"/>',
-    '<col min="2" max="2" width="14" customWidth="1"/>',
-    '<col min="3" max="3" width="18" customWidth="1"/>',
-    '<col min="4" max="4" width="42" customWidth="1"/>',
-    '<col min="5" max="5" width="24" customWidth="1"/>',
-    '<col min="6" max="6" width="20" customWidth="1"/>',
+    '<col min="2" max="2" width="28" customWidth="1"/>',
+    '<col min="3" max="3" width="14" customWidth="1"/>',
+    '<col min="4" max="4" width="18" customWidth="1"/>',
+    '<col min="5" max="5" width="42" customWidth="1"/>',
+    '<col min="6" max="6" width="24" customWidth="1"/>',
+    '<col min="7" max="7" width="20" customWidth="1"/>',
   ].join("");
 
   const rowXml = rows
@@ -688,8 +752,8 @@ function drawingXml(imageCount) {
     const row = i + 1;
     anchors.push(`
   <xdr:twoCellAnchor>
-    <xdr:from><xdr:col>1</xdr:col><xdr:colOff>0</xdr:colOff><xdr:row>${row}</xdr:row><xdr:rowOff>0</xdr:rowOff></xdr:from>
-    <xdr:to><xdr:col>2</xdr:col><xdr:colOff>0</xdr:colOff><xdr:row>${row + 1}</xdr:row><xdr:rowOff>0</xdr:rowOff></xdr:to>
+    <xdr:from><xdr:col>2</xdr:col><xdr:colOff>0</xdr:colOff><xdr:row>${row}</xdr:row><xdr:rowOff>0</xdr:rowOff></xdr:from>
+    <xdr:to><xdr:col>3</xdr:col><xdr:colOff>0</xdr:colOff><xdr:row>${row + 1}</xdr:row><xdr:rowOff>0</xdr:rowOff></xdr:to>
     <xdr:pic>
       <xdr:nvPicPr>
         <xdr:cNvPr id="${i + 1}" name="Picture ${i + 1}"/>

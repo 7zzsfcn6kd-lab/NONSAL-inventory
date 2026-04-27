@@ -18,6 +18,9 @@
 
       <section id="captureScreen" class="screen">
         <div class="card">
+          <label class="label" for="policyHolderInput">Policy Holder</label>
+          <input id="policyHolderInput" class="input" type="text" placeholder="Enter policy holder name" />
+
           <p class="label">Active Room</p>
           <div class="row">
             <strong id="activeRoomText">Living Room</strong>
@@ -40,7 +43,6 @@
           </div>
 
           <input id="photoInput" class="hidden-input" type="file" accept="image/*" capture="environment" />
-          <button id="takePhotoBtn" class="btn btn--primary btn--big" type="button">Take Photo</button>
           <div id="cameraWrap" class="camera-wrap" hidden>
             <video id="cameraVideo" class="camera-video" playsinline autoplay muted></video>
             <div class="camera-actions">
@@ -61,24 +63,32 @@
             placeholder="Voice text appears here"
           ></textarea>
 
-          <button id="dictateBtn" class="btn" type="button">Dictate Again</button>
-          <button id="saveBtn" class="btn btn--primary" type="button">Save</button>
           <p id="status" class="status" aria-live="polite"></p>
+        </div>
+
+        <div class="thumb-actions">
+          <button id="takePhotoBtn" class="btn btn--primary btn--big thumb-step thumb-step--photo" type="button">1. Take Photo</button>
+          <button id="dictateBtn" class="btn btn--big thumb-step thumb-step--dictate" type="button">2. Dictate</button>
+          <button id="saveBtn" class="btn btn--primary btn--big thumb-step thumb-step--save" type="button">3. Save</button>
         </div>
       </section>
 
       <section id="listScreen" class="screen" hidden>
         <div class="card">
+          <label class="label" for="policyHolderEditInput">Policy Holder</label>
+          <input id="policyHolderEditInput" class="input" type="text" placeholder="Enter policy holder name" />
+
           <h2>Saved Entries</h2>
           <ul id="entriesList" class="entries-list"></ul>
           <button id="exportCsvBtn" class="btn" type="button">Export XLSX</button>
           <button id="downloadPhotosBtn" class="btn" type="button">Download Photos</button>
+          <button id="clearInventoryBtn" class="btn" type="button">Clear Inventory</button>
         </div>
       </section>
 
       <nav class="bottom-nav">
-        <button id="navCaptureBtn" class="btn btn--small" type="button">Capture</button>
-        <button id="navListBtn" class="btn btn--small" type="button">Entries</button>
+        <button id="navCaptureBtn" class="btn btn--small nav-tab-btn" type="button">Capture</button>
+        <button id="navListBtn" class="btn btn--small nav-tab-btn" type="button">Entries</button>
       </nav>
     </main>
 
