@@ -28,7 +28,7 @@ const cancelCameraBtn = document.getElementById("cancelCameraBtn");
 const photoPreviewWrap = document.getElementById("photoPreviewWrap");
 const photoPreview = document.getElementById("photoPreview");
 const descriptionInput = document.getElementById("descriptionInput");
-const dictateBtn = document.getElementById("dictateBtn");
+const focusDescriptionBtn = document.getElementById("focusDescriptionBtn");
 const saveBtn = document.getElementById("saveBtn");
 const statusEl = document.getElementById("status");
 
@@ -78,7 +78,7 @@ async function init() {
   capturePhotoBtn.addEventListener("click", captureFromLiveCamera);
   cancelCameraBtn.addEventListener("click", closeCameraCapture);
 
-  dictateBtn.addEventListener("click", startDictation);
+  focusDescriptionBtn.addEventListener("click", focusDescriptionField);
   saveBtn.addEventListener("click", saveEntry);
 
   entriesList.addEventListener("click", onEntriesListClick);
@@ -298,7 +298,7 @@ async function captureFromLiveCamera() {
 
   setCapturedPhoto(blob);
   stopActiveCamera();
-  setStatus("Photo captured. Tap 2. Dictate.");
+  setStatus("Photo captured. Tap 2. Describe.");
 }
 
 function onPhotoSelected(event) {
@@ -306,7 +306,7 @@ function onPhotoSelected(event) {
   if (!file) return;
 
   setCapturedPhoto(file);
-  setStatus("Photo captured. Tap 2. Dictate.");
+  setStatus("Photo captured. Tap 2. Describe.");
 }
 
 function setCapturedPhoto(blob) {
@@ -321,31 +321,9 @@ function setCapturedPhoto(blob) {
   photoPreviewWrap.hidden = false;
 }
 
-function startDictation() {
-  const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-  if (!SpeechRecognition) {
-    setStatus("Voice input unavailable. Use iPhone keyboard dictation.");
-    return;
-  }
-
-  const recognition = new SpeechRecognition();
-  recognition.lang = "en-US";
-  recognition.interimResults = false;
-  recognition.maxAlternatives = 1;
-
-  setStatus("Listening...");
-
-  recognition.onresult = (event) => {
-    const transcript = event.results?.[0]?.[0]?.transcript?.trim() || "";
-    descriptionInput.value = transcript;
-    setStatus("Voice captured.");
-  };
-
-  recognition.onerror = () => {
-    setStatus("Voice input failed. Tap 2. Dictate.");
-  };
-
-  recognition.start();
+function focusDescriptionField() {
+  descriptionInput.focus();
+  setStatus("Use keyboard microphone or type description.");
 }
 
 async function saveEntry() {

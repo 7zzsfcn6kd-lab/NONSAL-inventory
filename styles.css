@@ -153,7 +153,7 @@ body {
   display: grid;
   grid-template-columns: 1fr 1fr;
   grid-template-areas:
-    "photo dictate"
+    "photo describe"
     "save save";
   gap: 8px;
   z-index: 20;
@@ -172,8 +172,8 @@ body {
   grid-area: photo;
 }
 
-.thumb-step--dictate {
-  grid-area: dictate;
+.thumb-step--describe {
+  grid-area: describe;
 }
 
 .thumb-step--save {
