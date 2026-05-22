@@ -84,7 +84,7 @@ async function init() {
   entriesList.addEventListener("click", onEntriesListClick);
 
   exportCsvBtn.addEventListener("click", exportXlsx);
-  downloadPhotosBtn.addEventListener("click", downloadAllPhotos);
+  downloadPhotosBtn.addEventListener("click", shareOrDownloadAllPhotos);
   clearInventoryBtn.addEventListener("click", clearInventoryWithConfirm);
   window.addEventListener("pagehide", stopActiveCamera);
 }
@@ -518,13 +518,37 @@ async function exportXlsx() {
   setStatus("XLSX exported.");
 }
 
-function downloadAllPhotos() {
+async function shareOrDownloadAllPhotos() {
   if (!entries.length) {
     setStatus("No photos to download.");
     return;
   }
 
   const rows = buildExportRows();
+  const files = rows.map(
+    (row) =>
+      new File([row.photoBlob], row.photoFilename, {
+        type: row.photoBlob.type || "image/jpeg",
+      })
+  );
+
+  if (navigator.canShare?.({ files })) {
+    try {
+      await navigator.share({
+        files,
+        title: "NONSAL Inventory Photos",
+        text: "Save inventory photos.",
+      });
+      setStatus("Photos shared. Choose Save Images if prompted.");
+      return;
+    } catch (error) {
+      if (error?.name === "AbortError") {
+        setStatus("Photo save canceled.");
+        return;
+      }
+    }
+  }
+
   rows.forEach((row, index) => {
     setTimeout(() => {
       triggerDownload(row.photoBlob, row.photoFilename);
