@@ -10,7 +10,8 @@ const listScreen = document.getElementById("listScreen");
 const navCaptureBtn = document.getElementById("navCaptureBtn");
 const navListBtn = document.getElementById("navListBtn");
 
-const roomSelect = document.getElementById("roomSelect");
+const roomInput = document.getElementById("roomInput");
+const roomOptions = document.getElementById("roomOptions");
 const policyHolderInput = document.getElementById("policyHolderInput");
 const policyHolderEditInput = document.getElementById("policyHolderEditInput");
 
@@ -60,7 +61,8 @@ async function init() {
   navCaptureBtn.addEventListener("click", () => showScreen("capture"));
   navListBtn.addEventListener("click", () => showScreen("list"));
 
-  roomSelect.addEventListener("change", onRoomSelectChange);
+  roomInput.addEventListener("change", onRoomInputChange);
+  roomInput.addEventListener("blur", onRoomInputChange);
   policyHolderInput.addEventListener("input", onPolicyHolderChange);
   policyHolderEditInput.addEventListener("input", onPolicyHolderChange);
 
@@ -195,20 +197,15 @@ function showScreen(screen) {
   }
 }
 
-function onRoomSelectChange() {
-  if (roomSelect.value === "__create__") {
-    const customRoom = window.prompt("Enter room name:");
-    if (!customRoom?.trim()) {
-      updateActiveRoomUI();
-      return;
-    }
-
-    activeRoom = customRoom.trim();
-    addRoomOption(activeRoom);
-  } else {
-    activeRoom = roomSelect.value;
+function onRoomInputChange() {
+  const selectedRoom = roomInput.value.trim();
+  if (!selectedRoom) {
+    updateActiveRoomUI();
+    return;
   }
 
+  activeRoom = selectedRoom;
+  addRoomOption(activeRoom);
   localStorage.setItem(ACTIVE_ROOM_KEY, activeRoom);
   updateActiveRoomUI();
   setStatus("Room updated.");
@@ -227,17 +224,16 @@ function syncPolicyHolderInputs() {
 
 function updateActiveRoomUI() {
   addRoomOption(activeRoom);
-  roomSelect.value = activeRoom;
+  roomInput.value = activeRoom;
 }
 
 function addRoomOption(roomName) {
   if (!roomName) return;
-  if (Array.from(roomSelect.options).some((opt) => opt.value === roomName)) return;
+  if (Array.from(roomOptions.options).some((opt) => opt.value === roomName)) return;
 
   const option = document.createElement("option");
   option.value = roomName;
-  option.textContent = roomName;
-  roomSelect.appendChild(option);
+  roomOptions.appendChild(option);
 }
 
 async function openCameraCapture() {

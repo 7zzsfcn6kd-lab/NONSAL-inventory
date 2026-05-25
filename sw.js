@@ -1,4 +1,4 @@
-const CACHE_NAME = "nonsal-cache-v4";
+const CACHE_NAME = "nonsal-cache-v5";
 const APP_SHELL = [
   "./",
   "./index.html",

@@ -21,15 +21,15 @@
           <label class="label" for="policyHolderInput">Policy Holder</label>
           <input id="policyHolderInput" class="input" type="text" placeholder="Enter policy holder name" />
 
-          <label class="label" for="roomSelect">Room</label>
-          <select id="roomSelect" class="input">
-            <option value="__create__">Create Room...</option>
-            <option value="Living Room">Living Room</option>
-            <option value="Kitchen">Kitchen</option>
-            <option value="Bedroom">Bedroom</option>
-            <option value="Bathroom">Bathroom</option>
-            <option value="Garage">Garage</option>
-          </select>
+          <label class="label" for="roomInput">Room</label>
+          <input id="roomInput" class="input" list="roomOptions" type="text" placeholder="Select or type room" />
+          <datalist id="roomOptions">
+            <option value="Living Room"></option>
+            <option value="Kitchen"></option>
+            <option value="Bedroom"></option>
+            <option value="Bathroom"></option>
+            <option value="Garage"></option>
+          </datalist>
 
           <input id="photoInput" class="hidden-input" type="file" accept="image/*" capture="environment" />
           <div id="cameraWrap" class="camera-wrap" hidden>
