@@ -10,12 +10,7 @@ const listScreen = document.getElementById("listScreen");
 const navCaptureBtn = document.getElementById("navCaptureBtn");
 const navListBtn = document.getElementById("navListBtn");
 
-const activeRoomText = document.getElementById("activeRoomText");
-const changeRoomBtn = document.getElementById("changeRoomBtn");
-const roomPanel = document.getElementById("roomPanel");
-const roomPresetSelect = document.getElementById("roomPresetSelect");
-const customRoomInput = document.getElementById("customRoomInput");
-const applyRoomBtn = document.getElementById("applyRoomBtn");
+const roomSelect = document.getElementById("roomSelect");
 const policyHolderInput = document.getElementById("policyHolderInput");
 const policyHolderEditInput = document.getElementById("policyHolderEditInput");
 
@@ -65,11 +60,7 @@ async function init() {
   navCaptureBtn.addEventListener("click", () => showScreen("capture"));
   navListBtn.addEventListener("click", () => showScreen("list"));
 
-  changeRoomBtn.addEventListener("click", () => {
-    roomPanel.hidden = !roomPanel.hidden;
-  });
-
-  applyRoomBtn.addEventListener("click", applyRoomChoice);
+  roomSelect.addEventListener("change", onRoomSelectChange);
   policyHolderInput.addEventListener("input", onPolicyHolderChange);
   policyHolderEditInput.addEventListener("input", onPolicyHolderChange);
 
@@ -204,14 +195,22 @@ function showScreen(screen) {
   }
 }
 
-function applyRoomChoice() {
-  const custom = customRoomInput.value.trim();
-  const chosen = custom || roomPresetSelect.value;
-  activeRoom = chosen;
+function onRoomSelectChange() {
+  if (roomSelect.value === "__create__") {
+    const customRoom = window.prompt("Enter room name:");
+    if (!customRoom?.trim()) {
+      updateActiveRoomUI();
+      return;
+    }
+
+    activeRoom = customRoom.trim();
+    addRoomOption(activeRoom);
+  } else {
+    activeRoom = roomSelect.value;
+  }
+
   localStorage.setItem(ACTIVE_ROOM_KEY, activeRoom);
   updateActiveRoomUI();
-  customRoomInput.value = "";
-  roomPanel.hidden = true;
   setStatus("Room updated.");
 }
 
@@ -227,10 +226,18 @@ function syncPolicyHolderInputs() {
 }
 
 function updateActiveRoomUI() {
-  activeRoomText.textContent = activeRoom;
-  if (Array.from(roomPresetSelect.options).some((opt) => opt.value === activeRoom)) {
-    roomPresetSelect.value = activeRoom;
-  }
+  addRoomOption(activeRoom);
+  roomSelect.value = activeRoom;
+}
+
+function addRoomOption(roomName) {
+  if (!roomName) return;
+  if (Array.from(roomSelect.options).some((opt) => opt.value === roomName)) return;
+
+  const option = document.createElement("option");
+  option.value = roomName;
+  option.textContent = roomName;
+  roomSelect.appendChild(option);
 }
 
 async function openCameraCapture() {

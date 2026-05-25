@@ -21,26 +21,15 @@
           <label class="label" for="policyHolderInput">Policy Holder</label>
           <input id="policyHolderInput" class="input" type="text" placeholder="Enter policy holder name" />
 
-          <p class="label">Active Room</p>
-          <div class="row">
-            <strong id="activeRoomText">Living Room</strong>
-            <button id="changeRoomBtn" class="btn btn--small" type="button">Change Room</button>
-          </div>
-
-          <div id="roomPanel" class="room-panel" hidden>
-            <label class="label" for="roomPresetSelect">Preset</label>
-            <select id="roomPresetSelect" class="input">
-              <option value="Living Room">Living Room</option>
-              <option value="Kitchen">Kitchen</option>
-              <option value="Bedroom">Bedroom</option>
-              <option value="Bathroom">Bathroom</option>
-              <option value="Garage">Garage</option>
-            </select>
-
-            <label class="label" for="customRoomInput">Custom Room (optional)</label>
-            <input id="customRoomInput" class="input" type="text" placeholder="e.g. Office" />
-            <button id="applyRoomBtn" class="btn" type="button">Use This Room</button>
-          </div>
+          <label class="label" for="roomSelect">Room</label>
+          <select id="roomSelect" class="input">
+            <option value="__create__">Create Room...</option>
+            <option value="Living Room">Living Room</option>
+            <option value="Kitchen">Kitchen</option>
+            <option value="Bedroom">Bedroom</option>
+            <option value="Bathroom">Bathroom</option>
+            <option value="Garage">Garage</option>
+          </select>
 
           <input id="photoInput" class="hidden-input" type="file" accept="image/*" capture="environment" />
           <div id="cameraWrap" class="camera-wrap" hidden>
