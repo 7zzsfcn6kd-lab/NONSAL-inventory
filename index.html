@@ -31,6 +31,17 @@
             <option value="Garage"></option>
           </datalist>
 
+          <div class="capture-checklist" aria-label="Capture progress">
+            <div id="photoStepStatus" class="capture-step">
+              <span class="capture-step__dot" aria-hidden="true"></span>
+              <span>Photo: Needed</span>
+            </div>
+            <div id="descriptionStepStatus" class="capture-step">
+              <span class="capture-step__dot" aria-hidden="true"></span>
+              <span>Description: Optional</span>
+            </div>
+          </div>
+
           <input id="photoInput" class="hidden-input" type="file" accept="image/*" capture="environment" />
           <div id="cameraWrap" class="camera-wrap" hidden>
             <video id="cameraVideo" class="camera-video" playsinline autoplay muted></video>
@@ -58,7 +69,7 @@
         <div class="thumb-actions">
           <button id="takePhotoBtn" class="btn btn--primary btn--big thumb-step thumb-step--photo" type="button">1. Take Photo</button>
           <button id="focusDescriptionBtn" class="btn btn--big thumb-step thumb-step--describe" type="button">2. Describe</button>
-          <button id="saveBtn" class="btn btn--primary btn--big thumb-step thumb-step--save" type="button">3. Save</button>
+          <button id="saveBtn" class="btn btn--primary btn--big thumb-step thumb-step--save" type="button" disabled>3. Save</button>
         </div>
       </section>
 

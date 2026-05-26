@@ -27,6 +27,8 @@ const descriptionInput = document.getElementById("descriptionInput");
 const focusDescriptionBtn = document.getElementById("focusDescriptionBtn");
 const saveBtn = document.getElementById("saveBtn");
 const statusEl = document.getElementById("status");
+const photoStepStatus = document.getElementById("photoStepStatus");
+const descriptionStepStatus = document.getElementById("descriptionStepStatus");
 
 const entriesList = document.getElementById("entriesList");
 const exportCsvBtn = document.getElementById("exportCsvBtn");
@@ -65,6 +67,7 @@ async function init() {
   roomInput.addEventListener("blur", onRoomInputChange);
   policyHolderInput.addEventListener("input", onPolicyHolderChange);
   policyHolderEditInput.addEventListener("input", onPolicyHolderChange);
+  descriptionInput.addEventListener("input", updateCaptureChecklist);
 
   takePhotoBtn.addEventListener("click", openCameraCapture);
   photoInput.addEventListener("change", onPhotoSelected);
@@ -322,11 +325,25 @@ function setCapturedPhoto(blob) {
 
   photoPreview.src = currentPhotoPreviewUrl;
   photoPreviewWrap.hidden = false;
+  updateCaptureChecklist();
 }
 
 function focusDescriptionField() {
   descriptionInput.focus();
   setStatus("Use keyboard microphone or type description.");
+}
+
+function updateCaptureChecklist() {
+  const hasPhoto = Boolean(currentPhotoBlob);
+  const hasDescription = descriptionInput.value.trim().length > 0;
+
+  photoStepStatus.classList.toggle("capture-step--done", hasPhoto);
+  descriptionStepStatus.classList.toggle("capture-step--done", hasDescription);
+  photoStepStatus.lastElementChild.textContent = hasPhoto ? "Photo: Done" : "Photo: Needed";
+  descriptionStepStatus.lastElementChild.textContent = hasDescription
+    ? "Description: Added"
+    : "Description: Optional";
+  saveBtn.disabled = !hasPhoto;
 }
 
 async function saveEntry() {
@@ -365,6 +382,7 @@ function resetCaptureState() {
   photoPreview.src = "";
   photoPreviewWrap.hidden = true;
   descriptionInput.value = "";
+  updateCaptureChecklist();
 }
 
 function clearListPreviewUrls() {
